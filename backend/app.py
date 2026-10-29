@@ -19,6 +19,7 @@ sys.path.append(PROJECT_ROOT)
 
 from data.validate_data import validate_dataset
 from routing.astar import a_star_search, NODES, get_demonstration_nodes, snap_to_road_graph
+from routing.agent import select_nearest_help_point, trigger_demo_sos
 
 app = Flask(__name__)
 CORS(app)
@@ -278,6 +279,73 @@ def calculate_route():
         status_code = 400
     elif result["status"] == "unreachable":
         status_code = 404
+
+    return jsonify(result), status_code
+
+
+@app.route("/api/agent/nearest-help", methods=["POST"])
+def agent_nearest_help():
+    """
+    Stage 5 Goal-Based Agent:
+    Evaluates all candidate help points using A* road distance and
+    selects the closest reachable safe point.
+    Expected JSON: {"start_node": "N_MODEL_TOWN"} or coordinates.
+    """
+    data = request.get_json(silent=True) or {}
+    start_id = data.get("start_node", "").strip()
+    start_lat = data.get("start_lat")
+    start_lng = data.get("start_lng")
+
+    if start_lat is not None and start_lng is not None:
+        snapped_start, dist_start = snap_to_road_graph(start_lat, start_lng)
+        if not snapped_start:
+            return jsonify({
+                "status": "error",
+                "message": f"Start coordinate ({start_lat}, {start_lng}) is too far from mapped roads ({dist_start:.2f} km)."
+            }), 400
+        start_id = snapped_start
+
+    if not start_id:
+        return jsonify({
+            "status": "error",
+            "message": "Start location ('start_node') is required for the Goal-Based Agent."
+        }), 400
+
+    result = select_nearest_help_point(start_id)
+    status_code = 200
+    if result["status"] == "error":
+        status_code = 400
+    elif result["status"] == "no_reachable_help_point":
+        status_code = 404
+
+    return jsonify(result), status_code
+
+
+@app.route("/api/agent/sos", methods=["POST"])
+def agent_demo_sos():
+    """
+    Stage 5 Rule-Based Reasoning & Demo SOS:
+    Requires explicit confirmation before triggering simulated alert.
+    Expected JSON: {"start_node": "...", "confirmed": true/false}
+    """
+    data = request.get_json(silent=True) or {}
+    start_id = data.get("start_node", "").strip()
+    confirmed = bool(data.get("confirmed", False))
+
+    if not start_id:
+        return jsonify({
+            "status": "error",
+            "message": "Start location ('start_node') is required for Demo SOS."
+        }), 400
+
+    result = trigger_demo_sos(start_id, confirmed=confirmed)
+    status_code = 200
+    if result["status"] == "confirmation_required":
+        status_code = 200
+    elif result["status"] == "demo_alert_failed":
+        status_code = 404
+    elif result["status"] == "error":
+        status_code = 400
 
     return jsonify(result), status_code
 

@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Navigation, Route, ArrowRight, AlertTriangle, CheckCircle2, RotateCcw } from 'lucide-react';
+import {
+  Navigation,
+  Route,
+  ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
+  RotateCcw,
+  Bot,
+  ShieldAlert,
+  AlertOctagon,
+  XCircle,
+} from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, activeRoute }) {
@@ -8,6 +19,11 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
   const [goalNode, setGoalNode] = useState('H_CIVIL_HOSPITAL');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // Stage 5 State: Agent Reasoning & Demo SOS Confirmation
+  const [agentReasoning, setAgentReasoning] = useState(null);
+  const [showSosConfirm, setShowSosConfirm] = useState(false);
+  const [sosAlert, setSosAlert] = useState(null);
 
   // Fetch graph nodes for dropdown selection
   useEffect(() => {
@@ -26,9 +42,11 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
       });
   }, []);
 
+  // 1. Standard A* Route Computation
   const handleFindRoute = () => {
     setLoading(true);
     setErrorMsg(null);
+    setAgentReasoning(null);
 
     fetch(`${API_BASE_URL}/api/route`, {
       method: 'POST',
@@ -50,8 +68,75 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
           onRouteCalculated(data);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setErrorMsg('Cannot connect to routing service. Verify backend is running.');
+        onRouteCalculated(null);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // 2. Stage 5: Goal-Based Agent (Selects Nearest Help Point by Road Distance)
+  const handleAgentNearest = () => {
+    setLoading(true);
+    setErrorMsg(null);
+
+    fetch(`${API_BASE_URL}/api/agent/nearest-help`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start_node: startNode }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || data.status !== 'success') {
+          setErrorMsg(data.message || 'Goal-Based Agent could not route to a safe point.');
+          onRouteCalculated(null);
+        } else {
+          setGoalNode(data.selected_help_point.id);
+          setAgentReasoning(data.reasoning);
+          onRouteCalculated(data);
+        }
+      })
+      .catch(() => {
+        setErrorMsg('Agent service unavailable. Verify backend is running.');
+        onRouteCalculated(null);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // 3. Stage 5: Demo SOS Safety Workflow (Requires Explicit User Confirmation)
+  const handleTriggerSos = () => {
+    // Rule: Ask for user confirmation first
+    setShowSosConfirm(true);
+    setErrorMsg(null);
+  };
+
+  const handleConfirmSos = () => {
+    setShowSosConfirm(false);
+    setLoading(true);
+    setErrorMsg(null);
+
+    fetch(`${API_BASE_URL}/api/agent/sos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        start_node: startNode,
+        confirmed: true,
+      }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || data.status !== 'demo_alert_triggered') {
+          setErrorMsg(data.message || 'Demo SOS workflow encountered an error.');
+          onRouteCalculated(null);
+        } else {
+          setSosAlert(data);
+          setGoalNode(data.selected_help_point.id);
+          setAgentReasoning(data.reasoning);
+          onRouteCalculated(data);
+        }
+      })
+      .catch(() => {
+        setErrorMsg('Demo SOS service unavailable.');
         onRouteCalculated(null);
       })
       .finally(() => setLoading(false));
@@ -59,15 +144,18 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
 
   const handleClear = () => {
     setErrorMsg(null);
+    setAgentReasoning(null);
+    setSosAlert(null);
+    setShowSosConfirm(false);
     onClearRoute();
   };
 
-  // Group nodes into starting points and help-point destinations
+  // Group nodes into starting locations and help-point destinations
   const startOptions = nodes.filter((n) => n.type !== 'help_point');
   const helpOptions = nodes.filter((n) => n.type === 'help_point' || n.type === 'test_isolated');
 
   return (
-    <div className="bg-slate-900/95 border border-indigo-500/30 rounded-xl p-4 shadow-2xl backdrop-blur text-xs w-80 text-slate-200 flex flex-col gap-3">
+    <div className="bg-slate-900/95 border border-indigo-500/30 rounded-xl p-4 shadow-2xl backdrop-blur text-xs w-84 text-slate-200 flex flex-col gap-3">
       {/* Header */}
       <div className="flex items-center justify-between pb-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
@@ -76,10 +164,10 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
           </div>
           <div>
             <h3 className="font-semibold text-slate-100 text-xs tracking-wide">
-              A* Road-Graph Router
+              A* Router & AI Agent
             </h3>
             <span className="text-[10px] text-indigo-300 font-mono">
-              Pure Python A* Engine
+              Stage 5: Goal-Based Agent
             </span>
           </div>
         </div>
@@ -131,15 +219,96 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
         </select>
       </div>
 
-      {/* Calculate Button */}
-      <button
-        onClick={handleFindRoute}
-        disabled={loading}
-        className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900 text-white font-medium rounded-lg shadow-md transition flex items-center justify-center gap-2 cursor-pointer text-xs"
-      >
-        <Route className="w-3.5 h-3.5" />
-        <span>{loading ? 'Executing A* Search...' : 'Compute A* Road Route'}</span>
-      </button>
+      {/* Action Buttons: 1. Manual A* Route & 2. Goal-Based Agent Auto-Select */}
+      <div className="flex flex-col gap-2 pt-1">
+        <button
+          onClick={handleFindRoute}
+          disabled={loading}
+          className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900 text-white font-medium rounded-lg shadow transition flex items-center justify-center gap-2 cursor-pointer text-xs"
+        >
+          <Route className="w-3.5 h-3.5" />
+          <span>{loading ? 'Calculating Route...' : 'Compute A* Road Route'}</span>
+        </button>
+
+        <button
+          onClick={handleAgentNearest}
+          disabled={loading}
+          className="w-full py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 font-medium rounded-lg border border-indigo-500/30 transition flex items-center justify-center gap-2 cursor-pointer text-xs"
+          title="Goal-Based Agent automatically compares candidate road distances"
+        >
+          <Bot className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Auto-Select Nearest Safe Point</span>
+        </button>
+      </div>
+
+      {/* Stage 5: Demo SOS Safety Trigger Button */}
+      <div className="pt-1 border-t border-slate-800/80">
+        <button
+          onClick={handleTriggerSos}
+          disabled={loading}
+          className="w-full py-2 px-3 bg-rose-600 hover:bg-rose-500 disabled:bg-rose-900 text-white font-semibold rounded-lg shadow-md transition flex items-center justify-center gap-2 cursor-pointer text-xs"
+        >
+          <AlertOctagon className="w-4 h-4 text-white animate-pulse" />
+          <span>Trigger Demo SOS Assistance</span>
+        </button>
+      </div>
+
+      {/* Stage 5: Rule-Based Confirmation Dialog */}
+      {showSosConfirm && (
+        <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-200 text-[11px] flex flex-col gap-2 shadow-lg">
+          <div className="flex items-start gap-2">
+            <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="leading-tight">
+              <strong className="text-rose-100">Confirm Demo SOS Activation?</strong>
+              <p className="mt-1 text-[10px] text-rose-300">
+                Rule Check: Explicit confirmation required. The goal-based agent will compute the nearest assistance post.
+              </p>
+              <p className="mt-1 text-[10px] text-amber-300 font-medium">
+                * Academic simulation only: No real emergency services (police, SMS) will be contacted.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 justify-end pt-1">
+            <button
+              onClick={() => setShowSosConfirm(false)}
+              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmSos}
+              className="px-3 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white font-semibold text-[10px] shadow cursor-pointer"
+            >
+              Confirm Demo SOS
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Stage 5: Active Demo SOS Banner */}
+      {sosAlert && (
+        <div className="p-2.5 rounded-lg bg-rose-900/30 border border-rose-500/40 text-rose-200 text-[11px] flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-rose-300 flex items-center gap-1.5 text-xs">
+              <AlertOctagon className="w-3.5 h-3.5 text-rose-400" />
+              DEMONSTRATION ALERT ACTIVE
+            </span>
+            <button
+              onClick={() => setSosAlert(null)}
+              className="text-slate-400 hover:text-slate-200 cursor-pointer"
+              title="Dismiss Alert"
+            >
+              <XCircle className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <p className="text-[10px] leading-tight text-slate-200">
+            {sosAlert.message}
+          </p>
+          <div className="text-[9px] text-amber-300/90 font-mono bg-rose-950/50 p-1.5 rounded border border-rose-800/40">
+            {sosAlert.disclaimer}
+          </div>
+        </div>
+      )}
 
       {/* Error Message */}
       {errorMsg && (
@@ -152,12 +321,23 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
         </div>
       )}
 
+      {/* Agent Reasoning Notice */}
+      {agentReasoning && !errorMsg && (
+        <div className="p-2 rounded-lg bg-indigo-950/50 border border-indigo-500/30 text-indigo-200 text-[10px] flex items-start gap-1.5 leading-tight">
+          <Bot className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-indigo-300">Goal-Based Agent Decision:</strong>
+            <p className="mt-0.5 text-slate-300">{agentReasoning}</p>
+          </div>
+        </div>
+      )}
+
       {/* Route Results Box */}
       {activeRoute && activeRoute.status === 'success' && (
         <div className="bg-slate-950/70 p-3 rounded-lg border border-indigo-500/30 flex flex-col gap-2">
           <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>A* Road Route Found</span>
+            <span>Optimal Road Route Connected</span>
           </div>
 
           {/* Distance Comparison */}
@@ -204,7 +384,7 @@ export default function RoutePlannerCard({ onRouteCalculated, onClearRoute, acti
 
       {/* Academic Disclaimer */}
       <div className="text-[10px] text-slate-500 pt-1.5 border-t border-slate-800/80 leading-tight">
-        * <strong>OpenStreetMap Road Network:</strong> Route calculated on central Jalandhar walkable ways. OSM coverage can be incomplete, and this route is an academic demonstration of A* graph search, not a guarantee of pedestrian safety or fastest traversal.
+        * <strong>Academic Demonstration:</strong> Road routes calculated on central Jalandhar walkable ways. Help points are simulation points for CA1 evaluation, not real emergency dispatches.
       </div>
     </div>
   );

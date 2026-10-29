@@ -1,12 +1,12 @@
 # SafeRoute AI — Risk Zone Mapping & Intelligent Pedestrian Router
 
-A 2nd-year B.Tech Artificial Intelligence Foundation project demonstrating transparent machine learning risk classification and handcrafted A* graph search on real OpenStreetMap road data for Jalandhar, Punjab.
+A 2nd-year B.Tech Artificial Intelligence Foundation project demonstrating transparent machine learning risk classification, handcrafted A* graph search on real OpenStreetMap road data, and a Goal-Based Agent with Rule-Based reasoning for Jalandhar, Punjab.
 
 ---
 
 ## 📌 Project Overview & Architecture
 
-SafeRoute AI combines geospatial visualization, supervised machine learning, and heuristic graph search to assist pedestrian navigation:
+SafeRoute AI combines geospatial visualization, supervised machine learning, heuristic graph search, and agent-based decision making:
 
 1. **Stage 1 — Data Collection & Integrity:**
    - 12 synthetic demonstration risk zones across central Jalandhar (`data/synthetic_risk_zones.csv`).
@@ -23,6 +23,10 @@ SafeRoute AI combines geospatial visualization, supervised machine learning, and
    - Handcrafted pure Python A* algorithm (`routing/astar.py`) using `heapq` and Haversine straight-line heuristic ($f(n) = g(n) + h(n)$).
    - Returns true curved road geometry (`geometry: [[lat, lng], ...]`) following actual street curves without cutting through buildings.
    - Coordinate snapping with 800 m threshold validation and unreachable destination handling.
+5. **Stage 5 — Goal-Based Agent & Rule-Based Demo SOS:**
+   - Goal-Based Agent (`routing/agent.py`) evaluating all candidate help points by actual calculated A* road distance to select the closest reachable safe point.
+   - Rule-based reasoning enforcing input validation, reachability checks, and explicit confirmation before safety workflow execution.
+   - Demo SOS simulation displaying a clear academic alert banner with zero false claims of police or emergency dispatch.
 
 ---
 
@@ -36,11 +40,6 @@ SafeRoute AI combines geospatial visualization, supervised machine learning, and
 ```bash
 # Install Python dependencies
 pip install -r backend/requirements.txt
-
-# (Optional) Run automated tests
-python data/validate_data.py
-python ml/train_classifier.py
-python routing/test_astar.py
 
 # Start Flask API server (http://127.0.0.1:5000)
 python backend/app.py
@@ -60,33 +59,44 @@ npm run dev
 
 ---
 
-## 🧪 Running the Test Suites
+## 🧪 Running Automated Test Suites
 
-All components include automated test scripts:
+All components include automated test scripts covering Stages 1 to 5:
 
-- **Data Integrity Tests:**
+- **Stage 1 (Data Integrity):**
   ```bash
   python data/validate_data.py
   ```
-- **ML Classifier Training & Evaluation:**
+- **Stage 3 (Decision Tree Classifier):**
   ```bash
   python ml/train_classifier.py
   ```
-- **A* OSM Road Graph Routing Tests:**
+- **Stage 4 (A* OSM Road Graph Routing):**
   ```bash
   python routing/test_astar.py
+  ```
+- **Stage 5 (Goal-Based Agent & Rule-Based Demo SOS):**
+  ```bash
+  python routing/test_agent.py
   ```
 
 ---
 
 ## 🎓 Viva & Core AI Concepts
 
+- **Goal-Based Agent Model (Russell & Norvig):**
+  - **Percept:** Current start location.
+  - **Goal:** Reach the closest accessible safe assistance post / help point via the road network.
+  - **Decision Utility:** Minimizing actual road distance $g(\text{goal})$ calculated by A*, rather than straight-line distance.
+- **Rule-Based Safety Reasoning:**
+  - `IF start is invalid THEN return validation error`
+  - `IF help point candidate is reachable THEN allow agent to consider its road distance`
+  - `IF no candidate is reachable THEN explain that no route was found`
+  - `IF SOS button is activated THEN require explicit confirmation before triggering demo alert`
 - **Why Haversine Distance is Admissible:**
   The straight-line (great-circle) distance is the shortest possible physical distance between two coordinates on the Earth sphere. Because physical roads bend around obstacles and city blocks, actual road distance $g(u, v) \ge d_{\text{haversine}}$ always. Therefore, $h(n) \le h^*(n)$ (never overestimates), guaranteeing that A* search is admissible and finds an optimal path.
-- **Directional Continuity:**
-  Every OpenStreetMap edge geometry is strictly oriented from the source node to the target node, preventing zigzagging or doubling back at intersections.
 - **Academic Integrity Disclaimer:**
-  All risk zone statistics and incident numbers are synthetic demonstration data for academic evaluation in Jalandhar. OpenStreetMap coverage can be incomplete, and calculated routes are an academic demonstration of A* graph search, not an official guarantee of pedestrian safety.
+  All risk zone statistics and incident numbers are synthetic demonstration data for academic evaluation in Jalandhar. OpenStreetMap coverage can be incomplete, and calculated routes and SOS alerts are academic simulations, not an official guarantee of pedestrian safety or real emergency dispatch.
 
 ---
 
@@ -95,7 +105,7 @@ All components include automated test scripts:
 ```text
 safesphere/
 ├── backend/
-│   ├── app.py                  # Flask REST API endpoints
+│   ├── app.py                  # Flask REST API endpoints (including Agent & SOS)
 │   └── requirements.txt        # Python package dependencies
 ├── data/
 │   ├── synthetic_risk_zones.csv # Academic demonstration risk data
@@ -104,7 +114,7 @@ safesphere/
 ├── frontend/                   # React + Vite + Leaflet web interface
 │   ├── src/components/
 │   │   ├── MapView.jsx         # Interactive Leaflet map & route polyline
-│   │   ├── RoutePlannerCard.jsx# A* router controls & distance comparison
+│   │   ├── RoutePlannerCard.jsx# A* router, Goal-Based Agent & Demo SOS
 │   │   ├── RiskPredictorCard.jsx # Decision Tree prediction panel
 │   │   ├── Legend.jsx          # Map color legend & disclaimers
 │   │   └── Header.jsx          # Top navigation bar
@@ -115,8 +125,10 @@ safesphere/
 │   └── model_meta.json         # Model accuracy, classes, and rules
 ├── routing/
 │   ├── astar.py                # Pure Python A* search & snapping logic
+│   ├── agent.py                # Goal-Based Agent & Rule-Based reasoning
 │   ├── build_graph.py          # OSMnx OpenStreetMap graph builder
-│   └── test_astar.py           # 6-case A* unit test suite
+│   ├── test_astar.py           # 6-case A* unit test suite
+│   └── test_agent.py           # 5-case Goal-Based Agent test suite
 ├── .gitignore                  # Git ignore rules
 └── README.md                   # Project documentation
 ```

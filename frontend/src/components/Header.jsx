@@ -12,7 +12,7 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <h1 className="text-base font-bold text-white tracking-wide m-0">SafeRoute</h1>
             <span className="text-xs bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">
-              Stage 4: Custom A* Routing Active
+              Stage 5: Goal-Based Agent & Demo SOS
             </span>
           </div>
           <p className="text-xs text-slate-400 m-0">

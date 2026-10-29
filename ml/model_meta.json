@@ -1,0 +1,37 @@
+{
+  "model_type": "scikit-learn DecisionTreeClassifier",
+  "max_depth": 3,
+  "random_state": 42,
+  "feature_names": [
+    "incident_count",
+    "lighting_score",
+    "crowd_density"
+  ],
+  "classes": [
+    "higher",
+    "lower",
+    "moderate"
+  ],
+  "training_samples": 9,
+  "test_samples": 3,
+  "test_accuracy": 1.0,
+  "confusion_matrix": [
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "disclaimer": "Academic synthetic demonstration data only. Not actual crime statistics in Jalandhar.",
+  "evaluation_limitation": "The test set has only 3 samples. 100% accuracy on this demonstration set is NOT evidence of reliable real-world safety prediction."
+}

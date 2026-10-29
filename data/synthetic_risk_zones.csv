@@ -1,0 +1,13 @@
+area_id,area_name,lat,lng,radius_meters,time_period,incident_count,lighting_score,crowd_density,risk_label,notes
+Z01,Model Town Commercial Hub,31.3090,75.5790,550,Evening (18:00-22:00),2,9,8,lower,Well-lit shopping district with active foot traffic
+Z02,BMC Chowk Central Crossing,31.3195,75.5805,450,Peak Hours (17:00-21:00),6,6,7,moderate,Major transit junction with heavy vehicular movement
+Z03,City Railway Station Back Alley,31.3325,75.5840,400,Late Night (23:00-04:00),14,2,2,higher,Demonstration zone with low lighting in service alleys
+Z04,Devi Talab Mandir Environs,31.3415,75.5900,500,Day & Evening (06:00-21:00),1,8,8,lower,Pilgrim center perimeter with regular local presence
+Z05,Rama Mandi Highway Junction,31.3150,75.6150,600,Night (21:00-03:00),7,5,5,moderate,High-speed road intersection with mixed illumination
+Z06,Jalandhar Cantt Military Area,31.2850,75.6050,700,All Day (24 Hours),0,9,4,lower,Secure perimeter with checkpoints and high visibility
+Z07,Maqsudan Bypass Service Lane,31.3650,75.5650,500,Night (22:00-04:00),12,3,2,higher,Outer corridor demonstration zone with sparse night traffic
+Z08,Basti Nau Craft Bazaar,31.3210,75.5520,400,Evening (18:00-22:00),5,6,6,moderate,Narrow commercial lanes with crowded daytime footfall
+Z09,PAP Ground Outer Ring,31.2990,75.6180,500,Night (20:00-02:00),6,5,4,moderate,Peripheral road section with intermediate street illumination
+Z10,Guru Gobind Singh Stadium Perimeter,31.3170,75.5680,450,Evening (17:00-21:00),1,8,7,lower,Open sports facility perimeter with active evening visitors
+Z11,Industrial Area Focal Point Outer,31.3520,75.6120,550,Late Night (23:00-04:00),13,2,3,higher,Industrial access lane demonstration zone with low night pedestrian count
+Z12,Jyoti Chowk Old Market,31.3255,75.5750,400,Evening (18:00-22:00),4,7,8,moderate,Vibrant traditional bazaar corridor with dense pedestrian movement

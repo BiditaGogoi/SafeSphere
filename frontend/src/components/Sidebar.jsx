@@ -1,18 +1,35 @@
 import React from 'react';
-import { Info, AlertCircle, CheckCircle2, CircleDashed } from 'lucide-react';
+import { AlertCircle, CheckCircle2, CircleDashed } from 'lucide-react';
+import HelpPointDetailsCard from './HelpPointDetailsCard';
 
 const PROJECT_STAGES = [
   { id: 1, name: 'Interactive Map of Jalandhar', done: true, desc: 'Leaflet + OpenStreetMap viewport' },
   { id: 2, name: 'Synthetic Risk Zones & CSV Data', done: true, desc: 'Labelled demo zones & quality checks' },
   { id: 3, name: 'Supervised ML Risk Classifier', done: true, desc: 'Scikit-learn Decision Tree & inference API' },
   { id: 4, name: 'Custom A* Routing & Comparison', done: true, desc: 'Graph routing vs straight-line distance' },
-  { id: 5, name: 'Goal-Based Agent & Demo SOS', done: false, desc: 'IF-THEN safety rules + one-tap SOS' },
+  { id: 5, name: 'Goal-Based Agent & Demo SOS', done: true, desc: 'IF-THEN safety rules + one-tap SOS' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ selectedHelpPoint, roadDistanceKm, onClearHelpPoint }) {
   return (
-    <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col h-full z-10 text-slate-200">
-      {/* Overview */}
+    <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col h-full z-10 text-slate-200 overflow-y-auto">
+      {/* Help Point Information System (Feature 5) */}
+      {selectedHelpPoint ? (
+        <div className="p-4 border-b border-slate-800">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-bold text-indigo-300 tracking-wide uppercase">
+              Selected Safe Point
+            </h2>
+          </div>
+          <HelpPointDetailsCard
+            point={selectedHelpPoint}
+            distanceKm={roadDistanceKm}
+            onClose={onClearHelpPoint}
+          />
+        </div>
+      ) : null}
+
+      {/* Project Roadmap */}
       <div className="p-4 border-b border-slate-800">
         <h2 className="text-sm font-semibold text-white tracking-wide uppercase text-slate-400 mb-2">
           Project Roadmap

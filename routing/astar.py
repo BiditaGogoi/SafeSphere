@@ -92,6 +92,12 @@ DEMO_HUBS_CONFIG = {
         "lat": 31.3280,
         "lng": 75.5770,
         "type": "help_point",
+        "category": "Hospital",
+        "address": "Circular Road, Near Jyoti Chowk, Central Jalandhar",
+        "services": ["24/7 Emergency Care", "First-Aid", "Ambulance Desk"],
+        "opening_hours": "24 Hours (Demo)",
+        "contact": "Information unavailable",
+        "verification_status": "Synthetic Demonstration Location",
     },
     "H_POLICE_BOOTH_BMC": {
         "id": "H_POLICE_BOOTH_BMC",
@@ -99,6 +105,12 @@ DEMO_HUBS_CONFIG = {
         "lat": 31.3200,
         "lng": 75.5815,
         "type": "help_point",
+        "category": "Police station",
+        "address": "BMC Chowk Intersection, GT Road Corridor, Jalandhar",
+        "services": ["Pedestrian Assistance", "Patrol Desk", "Local Reporting"],
+        "opening_hours": "24 Hours (Demo)",
+        "contact": "Not verified",
+        "verification_status": "Synthetic Demonstration Location",
     },
     "H_MODEL_TOWN_AID": {
         "id": "H_MODEL_TOWN_AID",
@@ -106,6 +118,12 @@ DEMO_HUBS_CONFIG = {
         "lat": 31.3105,
         "lng": 75.5800,
         "type": "help_point",
+        "category": "First-aid centre",
+        "address": "Model Town Market Main Road, Jalandhar",
+        "services": ["Primary First-Aid", "Resting Station", "Public Guidance"],
+        "opening_hours": "08:00 - 22:00 (Demo)",
+        "contact": "Information unavailable",
+        "verification_status": "Synthetic Demonstration Location",
     },
     # Intentionally disconnected test outpost to verify unreachable handling
     "N_ISOLATED_DEMO": {

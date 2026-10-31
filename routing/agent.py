@@ -26,13 +26,8 @@ def get_help_point_candidates():
     candidates = []
     for hub_id, hub in DEMO_HUBS_CONFIG.items():
         if hub.get("type") == "help_point":
-            candidates.append({
-                "id": hub["id"],
-                "name": hub["name"],
-                "lat": hub["lat"],
-                "lng": hub["lng"],
-                "type": hub["type"]
-            })
+            entry = dict(hub)
+            candidates.append(entry)
     return candidates
 
 

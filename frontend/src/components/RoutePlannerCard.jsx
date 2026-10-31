@@ -25,7 +25,7 @@ export default function RoutePlannerCard({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  // Stage 5 State: Agent Reasoning & Demo SOS
+  // Agent reasoning & Demo SOS state
   const [agentReasoning, setAgentReasoning] = useState(null);
   const [showSosConfirm, setShowSosConfirm] = useState(false);
   const [sosAlert, setSosAlert] = useState(null);
@@ -79,7 +79,7 @@ export default function RoutePlannerCard({
     });
   };
 
-  // 2. Stage 5: Goal-Based Agent auto-select
+  // Goal-Based Agent auto-select
   const handleAgentNearest = () => {
     executeApiCall('/api/agent/nearest-help', { start_node: startNode }, (data) => {
       setGoalNode(data.selected_help_point.id);
@@ -91,7 +91,7 @@ export default function RoutePlannerCard({
     });
   };
 
-  // 3. Stage 5: Demo SOS safety trigger
+  // Demo SOS safety trigger
   const handleConfirmSos = () => {
     setShowSosConfirm(false);
     executeApiCall('/api/agent/sos', { start_node: startNode, confirmed: true }, (data) => {
@@ -126,7 +126,7 @@ export default function RoutePlannerCard({
           </div>
           <div>
             <h3 className="font-semibold text-slate-100 text-xs tracking-wide">A* Router & AI Agent</h3>
-            <span className="text-[10px] text-indigo-300 font-mono">Stage 5: Goal-Based Agent</span>
+            <span className="text-[10px] text-indigo-300 font-mono">Goal-Based Agent</span>
           </div>
         </div>
         {activeRoute && (
@@ -184,7 +184,7 @@ export default function RoutePlannerCard({
         </button>
       </div>
 
-      {/* Stage 5: Rule-Based Confirmation Dialog */}
+      {/* Rule-Based Confirmation Dialog */}
       {showSosConfirm && (
         <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-200 text-[11px] flex flex-col gap-2 shadow-lg">
           <div className="flex items-start gap-2">
@@ -204,7 +204,7 @@ export default function RoutePlannerCard({
         </div>
       )}
 
-      {/* Stage 5: Active Demo SOS Banner */}
+      {/* Active Demo SOS Banner */}
       {sosAlert && (
         <div className="p-2.5 rounded-lg bg-rose-900/30 border border-rose-500/40 text-rose-200 text-[11px] flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
